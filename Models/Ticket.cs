@@ -21,4 +21,5 @@ public class Ticket
     public string? AssignedToUserId { get; set; }
 
     public bool IsDeleted { get; set; } = false;
+    public DateTime UpdatedDate { get; set; }
 }

@@ -1,6 +1,7 @@
 
 using TicketingSystemMongo.Interfaces;
 using TicketingSystemMongo.Models;
+using MongoDB.Driver;
 
 namespace TicketingSystemMongo.Services;
 
@@ -23,47 +24,49 @@ public class TicketService : ITicketService
     //     await _repo.AddAsync(ticket);
     //     return ticket;
     // }
+
     public async Task<Ticket?> GetByIdAsync(string id)
-{
-    return await _repo.GetByIdAsync(id);
-}
+    {
+        return await _repo.GetByIdAsync(id);
+    }
 
-public async Task<bool> UpdateAsync(string id, UpdateTicketDto dto)
-{
-    var ticket = await _repo.GetByIdAsync(id);
-    if (ticket == null) return false;
+    public async Task UpdateAsync(string id, UpdateTicketDto dto)
+    {
+        var filter = Builders<Ticket>.Filter.Eq(t => t.Id, id);
 
-    ticket.Status = dto.Status;
-    ticket.Priority = dto.Priority;
+        var update = Builders<Ticket>.Update
+            .Set(t => t.Status, dto.Status)
+            .Set(t => t.Priority, dto.Priority)
+            .Set(t => t.UpdatedDate, DateTime.UtcNow)
+            .SetOnInsert(t => t.CreatedDate, DateTime.UtcNow);
 
-    await _repo.UpdateAsync(ticket);
-    return true;
-}
+        await _repo.UpsertAsync(filter, update);
+    }
 
-public async Task<bool> DeleteAsync(string id)
-{
-    var ticket = await _repo.GetByIdAsync(id);
-    if (ticket == null) return false;
+    public async Task<bool> DeleteAsync(string id)
+    {
+        var ticket = await _repo.GetByIdAsync(id);
+        if (ticket == null) return false;
 
-    ticket.IsDeleted = true;
-    await _repo.UpdateAsync(ticket);
-    return true;
-}
+        ticket.IsDeleted = true;
+        await _repo.UpdateAsync(ticket);
+        return true;
+    }
 
-private readonly ILogger<TicketService> _logger;
+    private readonly ILogger<TicketService> _logger;
 
-public TicketService(ITicketRepository repo, ILogger<TicketService> logger)
-{
-    _repo = repo;
-    _logger = logger;
-}
+    public TicketService(ITicketRepository repo, ILogger<TicketService> logger)
+    {
+        _repo = repo;
+        _logger = logger;
+    }
 
-public async Task<Ticket> CreateAsync(Ticket ticket)
-{
-    _logger.LogInformation("Creating ticket: {Title}", ticket.Title);
+    public async Task<Ticket> CreateAsync(Ticket ticket)
+    {
+        _logger.LogInformation("Creating ticket: {Title}", ticket.Title);
 
-    await _repo.AddAsync(ticket);
+        await _repo.AddAsync(ticket);
 
-    return ticket;
-}
+        return ticket;
+    }
 }

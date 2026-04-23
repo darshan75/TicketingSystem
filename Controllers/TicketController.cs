@@ -35,12 +35,13 @@ public async Task<IActionResult> Get(string? status, string? priority, int page 
     return Ok(result);
 }
 
-    [HttpPost]
-    public async Task<IActionResult> Create(Ticket ticket)
-    {
-        return Ok(await _service.CreateAsync(ticket));
-    }
-    [HttpGet("{id}")]
+[HttpPost]
+public async Task<IActionResult> Create(Ticket ticket)
+{
+    return Ok(await _service.CreateAsync(ticket));
+}
+
+[HttpGet("{id}")]
 public async Task<IActionResult> GetById(string id)
 {
     var data = await _service.GetByIdAsync(id);
@@ -51,9 +52,12 @@ public async Task<IActionResult> GetById(string id)
 [HttpPut("{id}")]
 public async Task<IActionResult> Update(string id, UpdateTicketDto dto)
 {
-    var result = await _service.UpdateAsync(id, dto);
-    if (!result) return NotFound();
-    return Ok("Updated");
+    // var result = await _service.UpdateAsync(id, dto);
+    // if (!result) return NotFound();
+    // return Ok("Updated");
+   await _service.UpdateAsync(id, dto);
+return Ok("Updated or Created");
+
 }
 
 [HttpDelete("{id}")]
